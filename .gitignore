@@ -1,0 +1,3 @@
+/bazel-*
+/**/vendor
+jsonnetfile.lock.json
