@@ -1,33 +1,44 @@
+local getKindIndex(kind, order) =
+  local indexes = std.find(kind, order);
+  assert std.length(indexes) > 0 : std.format('Kind %s not found in order', kind);
+  indexes[0];
+
 {
-  local defaultKindOrder = [
-    'CustomResourceDefinition',
-    'ServiceAccount',
-    'Role',
-    'ClusterRole',
-    'RoleBinding',
-    'ClusterRoleBinding',
-    'Secret',
-    'Deployment',
-    'Service',
-  ],
+  kindOrder: {
+    default():: [
+      'CustomResourceDefinition',
+      'ServiceAccount',
+      'Role',
+      'ClusterRole',
+      'RoleBinding',
+      'ClusterRoleBinding',
+      'Secret',
+      'Deployment',
+      'Service',
+    ],
 
-  addToKindOrder(kinds, order=defaultKindOrder, after=null, before=null)::
-    assert std.type(after) != 'null' && std.type(before) != 'null'
-      : 'Only one of the arguments `after` and `before` can be set';
+    withKindsAtPosition(position, kinds, baseOrder):: std.flattenArrays([
+      baseOrder[0:position:1],
+      kinds,
+      baseOrder[position::1],
+    ]),
 
-    local kinds = if std.isString(kinds) then [kinds] else kinds;
-    local kindToFind = if std.type(after) != 'null' then after else before;
-    local kindIndexes = std.find(kindToFind, order);
+    withKindsAfter(after, kinds, baseOrder)::
+      local order = std.uniq(baseOrder);
+      local newKinds = if std.isString(kinds) then [kinds] else kinds;
+      local index = getKindIndex(after, order) + 1;
 
-    assert std.length(kindIndexes) > 0 : std.format('Kind %s not found in order', kindToFind);
+      self.withKindsAtPosition(index, newKinds, baseOrder),
 
-    local matchedIndex = kindIndexes[std.length(kindIndexes) - 1];
-    local left = order[0:matchedIndex:1];
-    local right = order[matchedIndex + 1:std.legth(order) - 1:1];
+    withKindsBefore(after, kinds, baseOrder)::
+      local order = std.uniq(baseOrder);
+      local newKinds = if std.isString(kinds) then [kinds] else kinds;
+      local index = getKindIndex(after, baseOrder);
 
-    std.flattenArrays([left,kinds,right]),
+      self.withKindsAtPosition(index, newKinds, order),
+  },
 
-  newKindBasedSortFunc(order=defaultKindOrder):: function(resources)
+  newKindBasedSortFunc(order=$.kindOrder.default()):: function(resources)
     std.flattenArrays(
       [
         std.filter(function(res) res.kind == kind, resources)
