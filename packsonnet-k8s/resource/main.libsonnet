@@ -3,7 +3,7 @@
     'CustomResourceDefinition',
     'ServiceAccount',
     'Role',
-    'ClusteRrole',
+    'ClusterRole',
     'RoleBinding',
     'ClusterRoleBinding',
     'Secret',
