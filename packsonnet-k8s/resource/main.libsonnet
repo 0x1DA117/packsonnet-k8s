@@ -7,6 +7,8 @@ local getKindIndex(kind, order) =
   kindOrder: {
     default():: [
       'CustomResourceDefinition',
+      'MutatingWebhookConfiguration',
+      'ValidatingWebhookConfiguration',
       'ServiceAccount',
       'Role',
       'ClusterRole',
